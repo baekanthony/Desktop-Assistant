@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Speech.Synthesis;
+using System.Text.RegularExpressions;
 
 namespace Assist
 {
@@ -20,9 +22,23 @@ namespace Assist
     /// </summary>
     public partial class MainWindow : Window
     {
+        private SpeechSynthesizer synthesizer;
         public MainWindow()
         {
             InitializeComponent();
+            synthesizer = new SpeechSynthesizer();
+            synthesizer.SetOutputToDefaultAudioDevice();
+            synthesizer.Speak("Synth working");
+        }
+
+        private void UserInputTxt(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter) 
+            {
+                synthesizer.Speak(txtInput.Text);
+                prevInput.Text += txtInput.Text + "\n";
+                txtInput.Clear();
+            }
         }
     }
 }

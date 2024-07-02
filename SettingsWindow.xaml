@@ -1,20 +1,18 @@
-﻿<Window x:Class="Assist.MainWindow"
+﻿<Window x:Class="Assist.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Assist"
         mc:Ignorable="d"
-        Title="MainWindow" Height="100" Width="600">
-    <Grid Margin="5">
+        Title="Settings" Height="450" Width="800">
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="20"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
-        <Button Width="auto" x:Name="settingsButton" Click="OpenSettings">Temp Settings</Button>
         <StackPanel Grid.Row="1">
-            <TextBlock x:Name="prevInput"></TextBlock>
-            <TextBox x:Name="txtInput" KeyDown="UserInputTxt"/>
+            <Label>Set programs directory</Label>
+            <Button Click="SetDirectory">Browse</Button>
         </StackPanel>
     </Grid>
 </Window>

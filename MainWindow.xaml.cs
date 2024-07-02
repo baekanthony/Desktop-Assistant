@@ -140,15 +140,14 @@ namespace Assist
 
         private void OpenProgram(string program)
         {
-            //TODO: add more flexibility for programs location (maybe allow user to select a directory)
-            string programsPath = "TEMPPATH";
+            string programsPath = Properties.Settings.Default.ProgramsLocation + "\\";
 
             //TODO: what if program isn't spelled properly? Or if shorthand is used (ex. chrome vs google chrome)
             //TODO: what if program name isn't capitalised?
             string  processedName = program.Substring(0, 1).ToUpper() + program.Substring(1);
 
             //TODO: what if program is in a folder?
-            
+            Console.WriteLine($"Checking: {programsPath}");
             try
             {
                 Process.Start(programsPath + processedName);
@@ -158,6 +157,13 @@ namespace Assist
                 Console.WriteLine("Error");
                 //TODO: need to differentiate between exceptions?
             }
+        }
+
+        private void OpenSettings(object sender, RoutedEventArgs e)
+        {
+            Window settings = new SettingsWindow();
+            //TODO: Disable actions in main window while settings window open
+            settings.Show();
         }
     }
 }

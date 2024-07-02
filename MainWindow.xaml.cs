@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using System.Speech.Synthesis;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
 
 using Azure.Core;
@@ -51,16 +52,18 @@ namespace Assist
         {
             if (e.Key == Key.Enter) 
             {
+                ProcessCommand(client, txtInput.Text);
+
                 //TODO: just here temporarily to test synth working
                 synthesizer.Speak(txtInput.Text);
 
                 prevInput.Text += txtInput.Text + "\n";
-                ProcessCommand(client, txtInput.Text);
+
                 txtInput.Clear();
             }
         }
 
-        private void ProcessCommand(ConversationAnalysisClient client, String text)
+        private async void ProcessCommand(ConversationAnalysisClient client, string text)
         {
             string projectName = "Assistant";
             string deploymentName = "assistant-intent-v1";
@@ -88,7 +91,7 @@ namespace Assist
             };
 
             Console.WriteLine(RequestContent.Create(data));
-            Response response = client.AnalyzeConversation(RequestContent.Create(data));
+            Response response = await client.AnalyzeConversationAsync(RequestContent.Create(data));
 
             dynamic conversationalTaskResult = response.Content.ToDynamicFromJson(JsonPropertyNames.CamelCase);
             dynamic conversationPrediction = conversationalTaskResult.Result.Prediction;
@@ -110,16 +113,18 @@ namespace Assist
             */
 
             //TODO: maybe check confidenceScores here before proceeding
-            CommandSelection(conversationPrediction.TopIntent, conversationPrediction.Entities[0]);
+
+            dynamic target = (conversationPrediction.Entities.Length < 1) ? null: conversationPrediction.Entities[0];
+            CommandSelection(conversationPrediction.TopIntent, target);
         }
 
-        private void CommandSelection(String command, dynamic target = null)
+        private void CommandSelection(string command, dynamic target = null)
         {
             switch(command)
             {
                 case "Open":
                     Console.WriteLine("Open");
-                    Console.WriteLine($"{target.Text}");
+                    OpenProgram(target.Text);
                     break;
                 case "Focus":
                     Console.WriteLine("Focus");
@@ -130,6 +135,28 @@ namespace Assist
                 default:
                     Console.WriteLine("Invalid");
                     break;
+            }
+        }
+
+        private void OpenProgram(string program)
+        {
+            //TODO: add more flexibility for programs location (maybe allow user to select a directory)
+            string programsPath = "TEMPPATH";
+
+            //TODO: what if program isn't spelled properly? Or if shorthand is used (ex. chrome vs google chrome)
+            //TODO: what if program name isn't capitalised?
+            string  processedName = program.Substring(0, 1).ToUpper() + program.Substring(1);
+
+            //TODO: what if program is in a folder?
+            
+            try
+            {
+                Process.Start(programsPath + processedName);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error");
+                //TODO: need to differentiate between exceptions?
             }
         }
     }

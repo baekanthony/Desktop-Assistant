@@ -22,6 +22,7 @@ using Azure.Core;
 using Azure.Core.Serialization;
 using Azure.AI.Language.Conversations;
 using Azure;
+using System.Runtime.InteropServices;
 
 namespace Assist
 {
@@ -46,6 +47,8 @@ namespace Assist
             synthesizer = new SpeechSynthesizer();
             synthesizer.SetOutputToDefaultAudioDevice();
             synthesizer.Speak("Synth working");
+            EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, MonitorEnumProc, IntPtr.Zero);
+            EnumWindows(EnumWindowsTest, IntPtr.Zero);
         }
 
         private void UserInputTxt(object sender, KeyEventArgs e)
@@ -165,5 +168,54 @@ namespace Assist
             //TODO: Disable actions in main window while settings window open
             settings.Show();
         }
+
+        //SAMPLE CODE
+        public struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, EnumDisplayMonitorsProc lpfnEnum, IntPtr dwData);
+        public delegate bool EnumDisplayMonitorsProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData);
+
+        private static bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData)
+        {
+            Console.WriteLine($"Monitor Handle: {hMonitor}");
+            Console.WriteLine($"Monitor Coordinates: Left = {lprcMonitor.Left}, Top = {lprcMonitor.Top}, Right = {lprcMonitor.Right}, Bottom = {lprcMonitor.Bottom}");
+            Console.WriteLine();
+            return true;
+        }
+
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsWindowVisible(IntPtr hWnd);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+        public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+        private static bool EnumWindowsTest(IntPtr hWnd, IntPtr lParam)
+        {
+            if (IsWindowVisible(hWnd))
+            {
+                StringBuilder windowTitle = new StringBuilder(256);
+                GetWindowText(hWnd, windowTitle, windowTitle.Capacity);
+                Console.WriteLine($"Window Handle: {hWnd}");
+                Console.WriteLine($"Window Title: {windowTitle}");
+                Console.WriteLine();
+            }
+            return true; // Continue enumeration
+        }
     }
+
+
 }

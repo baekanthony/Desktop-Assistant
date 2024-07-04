@@ -23,6 +23,7 @@ using Azure.Core.Serialization;
 using Azure.AI.Language.Conversations;
 using Azure;
 using System.Runtime.InteropServices;
+using static Assist.MainWindow;
 
 namespace Assist
 {
@@ -192,15 +193,21 @@ namespace Assist
         }
 
 
-        [DllImport("user32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool IsWindowVisible(IntPtr hWnd);
+
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
         public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
         private static bool EnumWindowsTest(IntPtr hWnd, IntPtr lParam)
@@ -209,9 +216,19 @@ namespace Assist
             {
                 StringBuilder windowTitle = new StringBuilder(256);
                 GetWindowText(hWnd, windowTitle, windowTitle.Capacity);
-                Console.WriteLine($"Window Handle: {hWnd}");
-                Console.WriteLine($"Window Title: {windowTitle}");
-                Console.WriteLine();
+
+                if (windowTitle.Length > 0)
+                {
+                    RECT rect;
+                    if (GetWindowRect(hWnd, out rect))
+                    {
+                        //If 2 windows have same coord, the one returned first is on top
+                        Console.WriteLine($"Window Handle: {hWnd}");
+                        Console.WriteLine($"Window Title: {windowTitle}");
+                        Console.WriteLine($"Window Rect: Left = {rect.Left}, Top = {rect.Top}, Right = {rect.Right}, Bottom = {rect.Bottom}");
+                        Console.WriteLine();
+                    }
+                }
             }
             return true; // Continue enumeration
         }

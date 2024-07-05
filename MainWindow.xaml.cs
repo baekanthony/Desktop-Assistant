@@ -210,6 +210,27 @@ namespace Assist
         public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
         public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetWindowInfo(IntPtr hWnd, out WINDOWINFO pwi);
+
+        public struct WINDOWINFO
+        {
+            public uint cbSize;
+            public RECT rcWindow;
+            public RECT rcClient;
+            public uint dwStyle;
+            public uint dwExStyle;
+            public uint dwWindowStatus;
+            public uint cxWindowBorders;
+            public uint cyWindowBorders;
+            public ushort atomWindowType;
+            public ushort wCreatorVersion;
+        }
+
+        public const long WS_EX_NOREDIRECTIONBITMAP = 0x00200000L;
+        public const long WS_EX_TOOLWINDOW = 0x00000080L;
+
         private static bool EnumWindowsTest(IntPtr hWnd, IntPtr lParam)
         {
             if (IsWindowVisible(hWnd))
@@ -217,18 +238,25 @@ namespace Assist
                 StringBuilder windowTitle = new StringBuilder(256);
                 GetWindowText(hWnd, windowTitle, windowTitle.Capacity);
 
-                if (windowTitle.Length > 0)
+                WINDOWINFO info = new WINDOWINFO();
+                info.cbSize = (uint)Marshal.SizeOf(typeof(WINDOWINFO));
+                GetWindowInfo(hWnd, out info);
+
+                if (windowTitle.Length > 0 && ((info.dwExStyle & WS_EX_NOREDIRECTIONBITMAP) == 0) && ((info.dwExStyle & WS_EX_TOOLWINDOW) == 0))
                 {
                     RECT rect;
                     if (GetWindowRect(hWnd, out rect))
                     {
                         //If 2 windows have same coord, the one returned first is on top
+                        //Design choice: How to handle minimize windows?
                         Console.WriteLine($"Window Handle: {hWnd}");
                         Console.WriteLine($"Window Title: {windowTitle}");
+                        Console.WriteLine($"Window Info: rcWindow = {info.rcWindow}, rcClient = {info.rcClient}, dwStyle = {info.dwStyle.ToString("X")}, dwExStyle = {info.dwExStyle.ToString("X")}, dwWindowStatus = {info.dwWindowStatus}");
                         Console.WriteLine($"Window Rect: Left = {rect.Left}, Top = {rect.Top}, Right = {rect.Right}, Bottom = {rect.Bottom}");
                         Console.WriteLine();
                     }
                 }
+       
             }
             return true; // Continue enumeration
         }

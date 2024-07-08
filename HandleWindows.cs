@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Collections.Generic;
 
+using System.Windows.Forms;
+
 namespace Assist
 {
     internal class HandleWindows
@@ -50,6 +52,17 @@ namespace Assist
             EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, MonitorEnumProc, IntPtr.Zero);
             EnumWindows(EnumWindowsTest, IntPtr.Zero);
             SwapMonitors();
+            Console.WriteLine(SystemInformation.BorderSize.Width);
+            Console.WriteLine(SystemInformation.BorderSize.Height);
+
+            System.Drawing.Rectangle workingArea = Screen.PrimaryScreen.WorkingArea;
+            System.Drawing.Rectangle screenBounds = Screen.PrimaryScreen.Bounds;
+
+            int taskbarHeight = screenBounds.Height - workingArea.Height;
+            Console.WriteLine($"Working area: {workingArea}");
+            Console.WriteLine($"Screen bounds: {screenBounds}");
+            Console.WriteLine($"Taskbar height: {taskbarHeight}");
+            //window rect top + bot + taskbar
         }
 
         [DllImport("user32.dll")]
@@ -57,10 +70,28 @@ namespace Assist
         public static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, EnumDisplayMonitorsProc lpfnEnum, IntPtr dwData);
         public delegate bool EnumDisplayMonitorsProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData);
 
+
+        public struct LPMONITORINFO
+        {
+            public uint cbSize;
+            public RECT rcMonitor;
+            public RECT rcWork;
+            public uint dwFlags;
+        }
+        
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetMonitorInfoA(IntPtr hMonitor, out LPMONITORINFO lpmi);
+
         private bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData)
         {
             //Console.WriteLine($"monitor Rect: Left = {lprcMonitor.Left}, Top = {lprcMonitor.Top}, Right = {lprcMonitor.Right}, Bottom = {lprcMonitor.Bottom}");
+            LPMONITORINFO monitorInfo;
+            monitorInfo.cbSize = (uint)Marshal.SizeOf(typeof(LPMONITORINFO));
+            GetMonitorInfoA(hMonitor, out monitorInfo);
             monitors.Add(lprcMonitor);
+            RECT workArea = monitorInfo.rcWork;
+            Console.WriteLine($"monitor work area: Left = {workArea.Left}, Top = {workArea.Top}, Right = {workArea.Right}, Bottom = {workArea.Bottom}");
             return true;
         }
 
@@ -133,12 +164,13 @@ namespace Assist
                         WINDOW window = new WINDOW(rect, hWnd);
                         windows.Add(window);
                         Console.WriteLine($"Window Title: {windowTitle}");
-                        Console.WriteLine($"Window Rect: Left = {dimensions.Left}, Top = {dimensions.Top}, Right = {dimensions.Right}, Bottom = {dimensions.Bottom}");
+                        Console.WriteLine($"Extended frame bounds: Left = {dimensions.Left}, Top = {dimensions.Top}, Right = {dimensions.Right}, Bottom = {dimensions.Bottom}");
+                        Console.WriteLine($"Window Rect: Left = {rect.Left}, Top = {rect.Top}, Right = {rect.Right}, Bottom = {rect.Bottom}");
+                        Console.WriteLine();
                         /*
                         Console.WriteLine($"Window Handle: {hWnd}");
                         Console.WriteLine($"Window Title: {windowTitle}");
                         Console.WriteLine($"Window Info: rcWindow = {info.rcWindow}, rcClient = {info.rcClient}, dwStyle = {info.dwStyle.ToString("X")}, dwExStyle = {info.dwExStyle.ToString("X")}, dwWindowStatus = {info.dwWindowStatus}");
-                        Console.WriteLine($"Window Rect: Left = {rect.Left}, Top = {rect.Top}, Right = {rect.Right}, Bottom = {rect.Bottom}");
                         Console.WriteLine();
                         */
                     }

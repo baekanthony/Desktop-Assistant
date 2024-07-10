@@ -55,7 +55,7 @@ namespace Assist
             monitors = new List<RECT>();
             windows = new List<WINDOW>();
             EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, MonitorEnumProc, IntPtr.Zero);
-            EnumWindows(EnumWindowsTest, IntPtr.Zero);
+            EnumWindows(WindowEnumProc, IntPtr.Zero);
             SwapMonitors();
         }
 
@@ -67,18 +67,6 @@ namespace Assist
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetMonitorInfoA(IntPtr hMonitor, out LPMONITORINFO lpmi);
-
-        private bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData)
-        {
-            //Console.WriteLine($"monitor Rect: Left = {lprcMonitor.Left}, Top = {lprcMonitor.Top}, Right = {lprcMonitor.Right}, Bottom = {lprcMonitor.Bottom}");
-            LPMONITORINFO monitorInfo;
-            monitorInfo.cbSize = (uint)Marshal.SizeOf(typeof(LPMONITORINFO));
-            GetMonitorInfoA(hMonitor, out monitorInfo);
-            //monitors.Add(lprcMonitor);
-            monitors.Add(monitorInfo.rcWork);
-            //Console.WriteLine($"monitor work area: Left = {workArea.Left}, Top = {workArea.Top}, Right = {workArea.Right}, Bottom = {workArea.Bottom}");
-            return true;
-        }
 
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -103,11 +91,25 @@ namespace Assist
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+        
+        private bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData)
+        {
+            LPMONITORINFO monitorInfo;
+            monitorInfo.cbSize = (uint)Marshal.SizeOf(typeof(LPMONITORINFO));
+            GetMonitorInfoA(hMonitor, out monitorInfo);
+            monitors.Add(monitorInfo.rcWork);
+            return true;
+        }
 
-        private bool EnumWindowsTest(IntPtr hWnd, IntPtr lParam)
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
+        private bool WindowEnumProc(IntPtr hWnd, IntPtr lParam)
         {
             if (IsWindowVisible(hWnd))
             {
+                //TODO: remove after debugging
                 StringBuilder windowTitle = new StringBuilder(256);
                 GetWindowText(hWnd, windowTitle, windowTitle.Capacity);
 
@@ -127,13 +129,12 @@ namespace Assist
                         windows.Add(window);
                         Console.WriteLine($"Window Title: {windowTitle}");
                         Console.WriteLine($"Window Rect: Left = {rect.Left}, Top = {rect.Top}, Right = {rect.Right}, Bottom = {rect.Bottom}");
+                    }
+
+                    if (GetClientRect(hWnd, out rect))
+                    {
+                        Console.WriteLine($"Client Rect: Left = {rect.Left}, Top = {rect.Top}, Right = {rect.Right}, Bottom = {rect.Bottom}");
                         Console.WriteLine();
-                        /*
-                        Console.WriteLine($"Window Handle: {hWnd}");
-                        Console.WriteLine($"Window Title: {windowTitle}");
-                        Console.WriteLine($"Window Info: rcWindow = {info.rcWindow}, rcClient = {info.rcClient}, dwStyle = {info.dwStyle.ToString("X")}, dwExStyle = {info.dwExStyle.ToString("X")}, dwWindowStatus = {info.dwWindowStatus}");
-                        Console.WriteLine();
-                        */
                     }
                 }
             }
@@ -142,9 +143,12 @@ namespace Assist
 
         private bool IsWindowOnMonitor(RECT windowCoords, RECT monitorCoords)
         {
-            //TODO: THis only gets fullscreens
-            return ((windowCoords.Left + windowCoords.Right == monitorCoords.Left + monitorCoords.Right)
-                && (windowCoords.Top + windowCoords.Bottom == monitorCoords.Top + monitorCoords.Bottom));
+            //window.bot > 0
+            //right - abs(left) <= right?
+            return (windowCoords.Left <= monitorCoords.Right
+                && windowCoords.Top <= monitorCoords.Bottom
+                && windowCoords.Right <= monitorCoords.Right
+                && windowCoords.Bottom <= monitorCoords.Bottom);
         }
 
         private void SwapMonitors() 
@@ -208,8 +212,9 @@ namespace Assist
             Console.WriteLine($"X: {clientCoords.x}, Y: {clientCoords.y}");
             if (windowTitle.ToString().Contains("otepad"))
             {
-                //Need to consider the taskbar
-                SetWindowPos(window.hWnd, IntPtr.Zero, 0, 0, 1920, 1030, 0x0004 | 0x0040);
+                //Need to consider the taskbar (but why does height have to be 1 less than expected?)
+                //TODO scaling function
+                SetWindowPos(window.hWnd, IntPtr.Zero, 0, 1080, 1920, 1031, 0x0004 | 0x0040);
             }
             //SetWindowPos(window.hWnd, IntPtr.Zero, 0, 0, 1920, 1080, 0x0004);
             //SetWindowPos(window.hWnd, IntPtr.Zero, rect.Left, Y, width, height, 0x0004);

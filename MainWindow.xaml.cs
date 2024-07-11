@@ -47,7 +47,7 @@ namespace Assist
             InitializeComponent();
             synthesizer = new SpeechSynthesizer();
             synthesizer.SetOutputToDefaultAudioDevice();
-            synthesizer.Speak("Synth working");
+            //synthesizer.Speak("Synth working");
 
             HandleWindows windowsHandler = new HandleWindows();
         }

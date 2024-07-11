@@ -98,6 +98,8 @@ namespace Assist
             monitorInfo.cbSize = (uint)Marshal.SizeOf(typeof(LPMONITORINFO));
             GetMonitorInfoA(hMonitor, out monitorInfo);
             monitors.Add(monitorInfo.rcWork);
+            RECT work = monitorInfo.rcWork;
+            Console.WriteLine($"Monitor workspace: Left = {work.Left}, Top = {work.Top}, Right = {work.Right}, Bottom = {work.Bottom}");
             return true;
         }
 
@@ -134,8 +136,14 @@ namespace Assist
                     if (GetClientRect(hWnd, out rect))
                     {
                         Console.WriteLine($"Client Rect: Left = {rect.Left}, Top = {rect.Top}, Right = {rect.Right}, Bottom = {rect.Bottom}");
-                        Console.WriteLine();
                     }
+                    //These might give the desired values for calculations (the client values)
+                    //TODO: remove some of the other functions if this is used going forward
+                    RECT infoWindow = info.rcWindow;
+                    RECT infoClient = info.rcClient;
+                    Console.WriteLine($"Info window: Left = {infoWindow.Left}, Top = {infoWindow.Top}, Right = {infoWindow.Right}, Bottom = {infoWindow.Bottom}");
+                    Console.WriteLine($"Info Client: Left = {infoClient.Left}, Top = {infoClient.Top}, Right = {infoClient.Right}, Bottom = {infoClient.Bottom}");
+                    Console.WriteLine();
                 }
             }
             return true;
@@ -143,8 +151,9 @@ namespace Assist
 
         private bool IsWindowOnMonitor(RECT windowCoords, RECT monitorCoords)
         {
-            //window.bot > 0
-            //right - abs(left) <= right?
+            // x <= x for all 4
+            // window.right > monitor.left
+            // window.bot > monitor.left
             return (windowCoords.Left <= monitorCoords.Right
                 && windowCoords.Top <= monitorCoords.Bottom
                 && windowCoords.Right <= monitorCoords.Right
@@ -184,7 +193,6 @@ namespace Assist
             public long x;
             public long y;
         }
-
 
         private void SwapWindow(WINDOW window)
         {

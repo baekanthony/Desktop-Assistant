@@ -112,7 +112,6 @@ namespace Assist
 
                 if (((info.dwExStyle & WS_EX_NOREDIRECTIONBITMAP) == 0) && ((info.dwExStyle & WS_EX_TOOLWINDOW) == 0))
                 {
-                    RECT infoClient = info.rcClient;
                     WINDOW window = new WINDOW(info.rcClient, hWnd, (info.dwStyle & WS_MAXIMIZE) > 0);
                     windows.Add(window);
                 }
@@ -149,6 +148,23 @@ namespace Assist
             }
         }
 
+        //where input is 2 RECTs of 2 monitors
+        private (double wRatio, double hRatio) ScalingResolutions(RECT original, RECT target)
+        {
+            int originalWidth = original.Right - original.Left;
+            int originalHeight = original.Bottom - original.Top;
+
+            int targetWidth = target.Right - target.Left;
+            int targetHeight = target.Bottom - target.Top;
+
+            double widthRatio = (double) targetWidth / originalWidth;
+            double heightRatio = (double) targetHeight / originalHeight;
+            return (widthRatio, heightRatio);
+        }
+
+        //TODO: maybe all user to define which monitors to swap
+        //ex. swap monitors 1 and 3
+        //default being monitors 1 and 2
         //Current design only accomodates for 2 vertically stacked monitors
         private void SwapWindow(WINDOW window)
         {
@@ -164,14 +180,14 @@ namespace Assist
                 Y += 1080;
             }
 
-            //TODO: Scaling function for different monitor dimensions?
+            //TODO: Need to change SwapWindow function params 
+            //ScalingResolutions()
             int width = windowRect.Right - windowRect.Left;
             int height = windowRect.Bottom - windowRect.Top;
 
             const int SW_NORMAL = 1;
             const int SW_MAXIMIZE = 3;
             const uint SWP_SHOWWINDOW = 0x0040;
-
 
             if (window.isMaximized)
             {

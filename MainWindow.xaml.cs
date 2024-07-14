@@ -134,6 +134,7 @@ namespace Assist
                     Console.WriteLine("Focus");
                     break;
                 case "Swap":
+                    //TODO: default is swapping monitors 1 and 2
                     Console.WriteLine("Swap");
                     break;
                 default:

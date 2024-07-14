@@ -47,6 +47,7 @@ namespace Assist
             }
         }
 
+        //Caching?
         public List<RECT> monitors;
         public List<WINDOW> windows;
 
@@ -56,7 +57,7 @@ namespace Assist
 
             EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, MonitorEnumProc, IntPtr.Zero);
             EnumWindows(WindowEnumProc, IntPtr.Zero);
-            SwapMonitors();
+            SwapMonitors(0, 1);
         }
 
         [DllImport("user32.dll")]
@@ -128,23 +129,28 @@ namespace Assist
                 && windowCoords.Bottom <= monitorCoords.Bottom);
         }
 
-        private void SwapMonitors() 
+        private void SwapMonitors(int monitorNum1, int monitorNum2) 
         {
+            RECT original;
+            RECT target;
             //TODO: what if window is in both monitors? just leave it?
-            List<WINDOW> windowsToSwap = new List<WINDOW>();
             foreach (WINDOW window in windows)
             {
-                foreach (RECT monitor in monitors)
+                if (IsWindowOnMonitor(window.rect, monitors[monitorNum1]))
                 {
-                    if (IsWindowOnMonitor(window.rect, monitor))
-                    {
-                        //call swapWindow instead here
-                        windowsToSwap.Add(window);
-
-                        SwapWindow(window);
-                        break;
-                    }
+                    original = monitors[monitorNum1];
+                    target = monitors[monitorNum2];
                 }
+                else if (IsWindowOnMonitor(window.rect, monitors[monitorNum2]))
+                {
+                    original = monitors[monitorNum2];
+                    target = monitors[monitorNum1];
+                }
+                else
+                {
+                    break;
+                }
+                SwapWindow(window, original, target);
             }
         }
 
@@ -162,28 +168,16 @@ namespace Assist
             return (widthRatio, heightRatio);
         }
 
-        //TODO: maybe all user to define which monitors to swap
-        //ex. swap monitors 1 and 3
-        //default being monitors 1 and 2
-        //Current design only accomodates for 2 vertically stacked monitors
-        private void SwapWindow(WINDOW window)
+        //TODO: Settings to allow user to enumerate monitors
+        private void SwapWindow(WINDOW window, RECT original, RECT target)
         {
             RECT windowRect = window.rect;
-            int Y  = windowRect.Top;
-            //TODO: Temp
-            if (windowRect.Bottom > 1080)
-            {
-                Y -= 1080; 
-            } 
-            else
-            {
-                Y += 1080;
-            }
+            int x = windowRect.Left + (target.Left - original.Left);
+            int y  = windowRect.Top + (target.Top - original.Top);
 
-            //TODO: Need to change SwapWindow function params 
-            //ScalingResolutions()
-            int width = windowRect.Right - windowRect.Left;
-            int height = windowRect.Bottom - windowRect.Top;
+            var (wRatio, hRatio) = ScalingResolutions(original, target);
+            int width = (int) ((windowRect.Right - windowRect.Left) * wRatio);
+            int height = (int)((windowRect.Bottom - windowRect.Top) * hRatio);
 
             const int SW_NORMAL = 1;
             const int SW_MAXIMIZE = 3;
@@ -192,12 +186,12 @@ namespace Assist
             if (window.isMaximized)
             {
                 ShowWindow(window.hWnd, SW_NORMAL);
-                SetWindowPos(window.hWnd, IntPtr.Zero, windowRect.Left, Y, width, height - 1, SWP_SHOWWINDOW);
+                SetWindowPos(window.hWnd, IntPtr.Zero, x, y, width, height - 1, SWP_SHOWWINDOW);
                 ShowWindow(window.hWnd, SW_MAXIMIZE);
             } 
             else
             {
-                SetWindowPos(window.hWnd, IntPtr.Zero, windowRect.Left, Y, width, height, SWP_SHOWWINDOW);
+                SetWindowPos(window.hWnd, IntPtr.Zero, x, y, width, height, SWP_SHOWWINDOW);
             }
         }
     }

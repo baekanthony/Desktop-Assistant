@@ -131,11 +131,14 @@ namespace Assist
                     OpenProgram(target.Text);
                     break;
                 case "Focus":
+                    //TODO: have a timer to track deep work hours?
                     Console.WriteLine("Focus");
                     break;
                 case "Swap":
                     //TODO: default is swapping monitors 1 and 2
                     Console.WriteLine("Swap");
+                    HandleWindows windowsHandler = new HandleWindows();
+                    windowsHandler.SwapMonitors(0, 1);
                     break;
                 default:
                     Console.WriteLine("Invalid");

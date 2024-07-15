@@ -56,8 +56,6 @@ namespace Assist
             windows = new List<WINDOW>();
 
             EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, MonitorEnumProc, IntPtr.Zero);
-            EnumWindows(WindowEnumProc, IntPtr.Zero);
-            SwapMonitors(0, 1);
         }
 
         [DllImport("user32.dll")]
@@ -129,11 +127,11 @@ namespace Assist
                 && windowCoords.Bottom <= monitorCoords.Bottom);
         }
 
-        private void SwapMonitors(int monitorNum1, int monitorNum2) 
+        public void SwapMonitors(int monitorNum1, int monitorNum2)
         {
+            EnumWindows(WindowEnumProc, IntPtr.Zero);
             RECT original;
             RECT target;
-            //TODO: what if window is in both monitors? just leave it?
             foreach (WINDOW window in windows)
             {
                 if (IsWindowOnMonitor(window.rect, monitors[monitorNum1]))
@@ -172,10 +170,12 @@ namespace Assist
         private void SwapWindow(WINDOW window, RECT original, RECT target)
         {
             RECT windowRect = window.rect;
-            int x = windowRect.Left + (target.Left - original.Left);
-            int y  = windowRect.Top + (target.Top - original.Top);
 
             var (wRatio, hRatio) = ScalingResolutions(original, target);
+
+            int x = (int) (windowRect.Left * wRatio) + (target.Left - original.Left);
+            int y = (int) (windowRect.Top * hRatio) + (target.Top - original.Top);
+
             int width = (int) ((windowRect.Right - windowRect.Left) * wRatio);
             int height = (int)((windowRect.Bottom - windowRect.Top) * hRatio);
 

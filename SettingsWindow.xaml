@@ -13,6 +13,12 @@
         <StackPanel Grid.Row="1">
             <Label>Set programs directory</Label>
             <Button Click="SetDirectory">Browse</Button>
+            <Button Click="DisplayMonitors">Show Monitors</Button>
+            <Border BorderThickness="3" BorderBrush="Gray" Height="300" Width="500" Margin="0, 20" x:Name="monitorsCanvasBorder">
+                <Canvas x:Name="monitorsCanvas">
+
+                </Canvas>
+            </Border>
         </StackPanel>
     </Grid>
 </Window>

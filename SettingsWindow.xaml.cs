@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Shapes;
@@ -28,40 +27,58 @@ namespace Assist
                 Properties.Settings.Default.Save();
             }
         }
+        
+        private void FillComboBox(ComboBox comboBox, int numbering, int monitorsCount)
+        {
+            for (int i = 1; i <= monitorsCount; i++)
+            {
+                comboBox.Items.Add(i.ToString());
+            }
+            comboBox.SelectedIndex = numbering - 1;
+        }
+
+        private void MonitorNumChanged(object sender, EventArgs e)
+        {
+            Console.WriteLine("changed");
+            //apply, revert button
+            //need to ensure no 2 monitors have the same numbering
+        }
 
         private void DisplayMonitors(object sender, RoutedEventArgs e)
         {
             double canvasHeight = monitorsCanvasBorder.Height;
             double canvasWidth = monitorsCanvasBorder.Width;
 
-            /*
-            Rectangle test = new Rectangle();
-            test.Width = 100;
-            test.Height = 50;
-            test.Fill = System.Windows.Media.Brushes.Red;
-            Canvas.SetLeft(test, 150);
-            Canvas.SetTop(test, (canvasHeight / 2 - (50 / canvasHeight / 3)));
-            monitorsCanvas.Children.Add(test);
-            */
-
             HandleWindows windowsHandler = new HandleWindows();
+            int numbering = 1;
             foreach (HandleWindows.RECT monitor in windowsHandler.monitors)
             {
                 Console.WriteLine($"Displaying {monitor.Left}, {monitor.Top}, {monitor.Right}, { monitor.Bottom}");
+                Grid grid = new Grid();
                 Rectangle monitorRectangle = new Rectangle();
                 //TODO: Need to scale properly
-                double rectangleWidth = (monitor.Right - monitor.Left) / 6;
-                double rectangleHeight = (monitor.Bottom - monitor.Top) / 6;
+                double rectangleWidth = (monitor.Right - monitor.Left) / 12;
+                double rectangleHeight = (monitor.Bottom - monitor.Top) / 12;
                 Console.WriteLine($"Width: {rectangleWidth}, Height: {rectangleHeight}");
 
                 monitorRectangle.Width = rectangleWidth;
                 monitorRectangle.Height = rectangleHeight;
-                monitorRectangle.Fill = System.Windows.Media.Brushes.Gray;
+                monitorRectangle.Stroke = System.Windows.Media.Brushes.Gray;
 
-                Canvas.SetLeft(monitorRectangle, (canvasWidth / 2 - rectangleWidth + (monitor.Left / 5)));
-                Canvas.SetTop(monitorRectangle, (canvasHeight / 2 - rectangleHeight + (monitor.Top /5)));
+                //Taskbar needs to be taken into account when setting coordinate (probably best to have a rect with rcMonitor instead of rcWork) 
+                Canvas.SetLeft(grid, (canvasWidth / 2 - rectangleWidth + (monitor.Left / 12)));
+                Canvas.SetTop(grid, (canvasHeight / 2 - rectangleHeight + (monitor.Top /12)));
 
-                monitorsCanvas.Children.Add(monitorRectangle);
+                ComboBox numberingComboBox = new ComboBox();
+                FillComboBox(numberingComboBox, numbering, windowsHandler.monitors.Count);
+                numberingComboBox.SelectionChanged += new SelectionChangedEventHandler(MonitorNumChanged);
+
+                grid.Children.Add(monitorRectangle);
+                grid.Children.Add(numberingComboBox);
+
+                monitorsCanvas.Children.Add(grid);
+                numbering++;
+
             }
         }
     }

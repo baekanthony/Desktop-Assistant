@@ -37,10 +37,24 @@ namespace Assist
             comboBox.SelectedIndex = numbering - 1;
         }
 
+        //TODO settings case when setup is changed?
+
+        private bool ValidMonitorNums()
+        {
+
+            return true;
+        }
+
         private void MonitorNumChanged(object sender, EventArgs e)
         {
-            Console.WriteLine("changed");
-            //apply, revert button
+            applyBtn.Visibility = Visibility.Collapsed;
+            applyBtn.IsEnabled = false;
+            resetBtn.Visibility = Visibility.Visible;
+            if (ValidMonitorNums())
+            {
+                //In what format would these settings be saved, and how would they be used later in HandleWindows?
+                applyBtn.IsEnabled = true;
+            }
             //need to ensure no 2 monitors have the same numbering
         }
 
@@ -70,6 +84,7 @@ namespace Assist
                 Canvas.SetTop(grid, (canvasHeight / 2 - rectangleHeight + (monitor.Top /12)));
 
                 ComboBox numberingComboBox = new ComboBox();
+                numberingComboBox.Name = "numberingComboBox";
                 FillComboBox(numberingComboBox, numbering, windowsHandler.monitors.Count);
                 numberingComboBox.SelectionChanged += new SelectionChangedEventHandler(MonitorNumChanged);
 

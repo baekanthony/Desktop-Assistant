@@ -16,9 +16,13 @@
             <Button Click="DisplayMonitors">Show Monitors</Button>
             <Border BorderThickness="3" BorderBrush="Gray" Height="300" Width="500" Margin="0, 20" x:Name="monitorsCanvasBorder">
                 <Canvas x:Name="monitorsCanvas">
-
                 </Canvas>
             </Border>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button x:Name="applyBtn" Visibility="Hidden">Apply</Button>
+                <Button x:Name="resetBtn" Visibility="Hidden">Reset</Button>
+            </StackPanel>
         </StackPanel>
     </Grid>
 </Window>

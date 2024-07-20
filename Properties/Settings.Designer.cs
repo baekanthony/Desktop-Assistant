@@ -34,5 +34,27 @@ namespace Assist.Properties {
                 this["ProgramsLocation"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public int[] MonitorNums {
+            get {
+                return ((int[])(this["MonitorNums"]));
+            }
+            set {
+                this["MonitorNums"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public int[] TempMonitorNums {
+            get {
+                return ((int[])(this["TempMonitorNums"]));
+            }
+            set {
+                this["TempMonitorNums"] = value;
+            }
+        }
     }
 }

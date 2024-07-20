@@ -20,8 +20,8 @@
             </Border>
 
             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button x:Name="applyBtn" Visibility="Hidden">Apply</Button>
-                <Button x:Name="resetBtn" Visibility="Hidden">Reset</Button>
+                <Button x:Name="applyBtn" Visibility="Hidden" Click="ApplyMonitorNums">Apply</Button>
+                <Button x:Name="resetBtn" Visibility="Hidden" Click="ResetMonitorNums">Reset</Button>
             </StackPanel>
         </StackPanel>
     </Grid>

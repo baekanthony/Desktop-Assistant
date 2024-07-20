@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Shapes;
@@ -34,32 +35,59 @@ namespace Assist
             {
                 comboBox.Items.Add(i.ToString());
             }
-            comboBox.SelectedIndex = numbering - 1;
+            if (Properties.Settings.Default.MonitorNums != null && Properties.Settings.Default.MonitorNums.Length > 0)
+            {
+                comboBox.SelectedIndex = Properties.Settings.Default.MonitorNums[numbering - 1];
+            } else
+            {
+                comboBox.SelectedIndex = numbering - 1;
+            }
         }
 
         //TODO settings case when setup is changed?
 
         private bool ValidMonitorNums()
         {
+            var monitorNumsSet = new HashSet<int>();
+            foreach (Grid monitorGrid in monitorsCanvas.Children)
+            {
+                if (monitorGrid.Children[1] is ComboBox numberingComboBox)
+                {
+                    int monitorNum = numberingComboBox.SelectedIndex;
+                    if (!monitorNumsSet.Add(monitorNum))
+                    {
+                        return false;
+                    }
+                }
+            }
 
+            int[] monitorNumsArray = new int[monitorNumsSet.Count];
+            monitorNumsSet.CopyTo(monitorNumsArray);
+            Properties.Settings.Default.TempMonitorNums = monitorNumsArray;
+            Properties.Settings.Default.Save();
             return true;
         }
 
         private void MonitorNumChanged(object sender, EventArgs e)
         {
-            applyBtn.Visibility = Visibility.Collapsed;
+            Console.WriteLine("Changed");
+            applyBtn.Visibility = Visibility.Visible;
             applyBtn.IsEnabled = false;
             resetBtn.Visibility = Visibility.Visible;
+            resetBtn.IsEnabled = true;
             if (ValidMonitorNums())
             {
-                //In what format would these settings be saved, and how would they be used later in HandleWindows?
                 applyBtn.IsEnabled = true;
             }
-            //need to ensure no 2 monitors have the same numbering
         }
 
         private void DisplayMonitors(object sender, RoutedEventArgs e)
         {
+            if (Properties.Settings.Default.MonitorNums != null)
+            {
+                resetBtn.Visibility = Visibility.Visible;
+            }
+
             double canvasHeight = monitorsCanvasBorder.Height;
             double canvasWidth = monitorsCanvasBorder.Width;
 
@@ -95,6 +123,21 @@ namespace Assist
                 numbering++;
 
             }
+        }
+
+        private void ApplyMonitorNums(object sender, RoutedEventArgs e)
+        {
+            Properties.Settings.Default.MonitorNums = Properties.Settings.Default.TempMonitorNums;
+            Properties.Settings.Default.Save();
+            applyBtn.IsEnabled = false;
+        }
+
+        private void ResetMonitorNums(object sender, RoutedEventArgs e)
+        {
+            Properties.Settings.Default.MonitorNums = null;
+            Properties.Settings.Default.Save();
+            DisplayMonitors(sender, e);
+            resetBtn.IsEnabled = false;
         }
     }
 }

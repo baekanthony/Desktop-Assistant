@@ -88,12 +88,52 @@ namespace Assist
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
+        [DllImport("dxva2.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetMonitorBrightness(IntPtr hMonitor, out int pdwMinimumBrightness, out int pdwCurrentBrightness, out int pdwMaximumBrightness);
+
+        [DllImport("dxva2.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetPhysicalMonitorsFromHMONITOR(IntPtr hMonitor, uint dwPhysicalMonitorArraySize, [Out] PHYSICAL_MONITOR[] pPhysicalMonitorArray);
+
+        public struct PHYSICAL_MONITOR
+        {
+            public IntPtr hPhysicalMonitor;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            public string szPhysicalMonitorDescription;
+        }
+
+        [DllImport("dxva2.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetNumberOfPhysicalMonitorsFromHMONITOR(IntPtr hMonitor, out uint pdwNumberOfPhysicalMonitors);
+
         private bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData)
         {
             LPMONITORINFO monitorInfo;
             monitorInfo.cbSize = (uint)Marshal.SizeOf(typeof(LPMONITORINFO));
             GetMonitorInfoA(hMonitor, out monitorInfo);
             monitors.Add(monitorInfo.rcWork);
+
+            uint numOfMonitors;
+            GetNumberOfPhysicalMonitorsFromHMONITOR(hMonitor, out numOfMonitors);
+            Console.WriteLine($"Number of monitors: {numOfMonitors}");
+
+            PHYSICAL_MONITOR[] physicalMonitors = new PHYSICAL_MONITOR[numOfMonitors];
+
+            GetPhysicalMonitorsFromHMONITOR(hMonitor, numOfMonitors, physicalMonitors);
+
+            int min, curr, max;
+
+
+            foreach (var monitor in physicalMonitors)
+            {
+                Console.WriteLine($"Monitor: {monitor.szPhysicalMonitorDescription}, Handle: {monitor.hPhysicalMonitor}");
+                GetMonitorBrightness(monitor.hPhysicalMonitor, out min, out curr, out max);
+                Console.WriteLine("Brightness:");
+                Console.WriteLine(min + " " + curr + " " + max);
+            }
+
+
             return true;
         }
 
@@ -201,6 +241,11 @@ namespace Assist
             {
                 SetWindowPos(window.hWnd, IntPtr.Zero, x, y, width, height, SWP_SHOWWINDOW);
             }
+        }
+
+        public void DimMonitor(int monitorNum)
+        {
+
         }
     }
 }

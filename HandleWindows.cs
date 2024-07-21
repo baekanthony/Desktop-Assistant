@@ -127,8 +127,17 @@ namespace Assist
                 && windowCoords.Bottom <= monitorCoords.Bottom);
         }
 
+        //TODO: What if called with only 1 monitor?
         public void SwapMonitors(int monitorNum1, int monitorNum2)
         {
+            monitorNum1 -= 1;
+            monitorNum2 -= 1;
+            int[] monitorNums = Properties.Settings.Default.MonitorNums;
+            if (monitorNums != null)
+            {
+                monitorNum1 = monitorNums[monitorNum1];
+                monitorNum2 = monitorNums[monitorNum2];
+            }
             EnumWindows(WindowEnumProc, IntPtr.Zero);
             RECT original;
             RECT target;
@@ -166,7 +175,6 @@ namespace Assist
             return (widthRatio, heightRatio);
         }
 
-        //TODO: Settings to allow user to enumerate monitors
         private void SwapWindow(WINDOW window, RECT original, RECT target)
         {
             RECT windowRect = window.rect;

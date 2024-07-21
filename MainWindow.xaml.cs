@@ -47,9 +47,6 @@ namespace Assist
             InitializeComponent();
             synthesizer = new SpeechSynthesizer();
             synthesizer.SetOutputToDefaultAudioDevice();
-            //synthesizer.Speak("Synth working");
-
-            HandleWindows windowsHandler = new HandleWindows();
         }
 
         private void UserInputTxt(object sender, KeyEventArgs e)
@@ -59,7 +56,7 @@ namespace Assist
                 ProcessCommand(client, txtInput.Text);
 
                 //TODO: just here temporarily to test synth working
-                synthesizer.Speak(txtInput.Text);
+                //synthesizer.Speak(txtInput.Text);
 
                 prevInput.Text += txtInput.Text + "\n";
 
@@ -70,7 +67,7 @@ namespace Assist
         private async void ProcessCommand(ConversationAnalysisClient client, string text)
         {
             string projectName = "Assistant";
-            string deploymentName = "assistant-intent-v1";
+            string deploymentName = "assistant-intent-monitorNums";
 
             var data = new
             {
@@ -118,27 +115,26 @@ namespace Assist
 
             //TODO: maybe check confidenceScores here before proceeding
 
-            dynamic target = (conversationPrediction.Entities.Length < 1) ? null : conversationPrediction.Entities[0];
-            CommandSelection(conversationPrediction.TopIntent, target);
+            dynamic entities = conversationPrediction.Entities;
+            CommandSelection(conversationPrediction.TopIntent, entities);
         }
 
-        private void CommandSelection(string command, dynamic target = null)
+        private void CommandSelection(string command, dynamic entities = null)
         {
+            Console.WriteLine($"Yes {command} {entities}");
             switch (command)
             {
                 case "Open":
                     Console.WriteLine("Open");
-                    OpenProgram(target.Text);
+                    OpenProgram(entities);
                     break;
                 case "Focus":
                     //TODO: have a timer to track deep work hours?
                     Console.WriteLine("Focus");
                     break;
                 case "Swap":
-                    //TODO: default is swapping monitors 1 and 2
+                    HandleSwap(entities);
                     Console.WriteLine("Swap");
-                    HandleWindows windowsHandler = new HandleWindows();
-                    windowsHandler.SwapMonitors(0, 1);
                     break;
                 default:
                     Console.WriteLine("Invalid");
@@ -146,24 +142,42 @@ namespace Assist
             }
         }
 
-        private void OpenProgram(string program)
+        private void HandleSwap(dynamic entities = null)
         {
-            string programsPath = Properties.Settings.Default.ProgramsLocation + "\\";
+            int monitor1 = 1;
+            int monitor2 = 2;
 
-            //TODO: what if program isn't spelled properly? Or if shorthand is used (ex. chrome vs google chrome)
-            //TODO: what if program name isn't capitalised?
-            string processedName = program.Substring(0, 1).ToUpper() + program.Substring(1);
-
-            //TODO: what if program is in a folder?
-            Console.WriteLine($"Checking: {programsPath}");
-            try
+            if (entities != null && entities.Length == 2)
             {
-                Process.Start(programsPath + processedName);
+                monitor1 = Int32.Parse(entities[0].text);
+                monitor2 = Int32.Parse(entities[1].text);
             }
-            catch (Exception e)
+            HandleWindows windowsHandler = new HandleWindows();
+            windowsHandler.SwapMonitors(monitor1, monitor2);
+        }
+
+        private void OpenProgram(dynamic entities)
+        {
+            if (entities != null && entities.Length == 1)
             {
-                Console.WriteLine("Error");
-                //TODO: need to differentiate between exceptions?
+                String program = entities[0].text;
+                string programsPath = Properties.Settings.Default.ProgramsLocation + "\\";
+
+                //TODO: what if program isn't spelled properly? Or if shorthand is used (ex. chrome vs google chrome)
+                //TODO: what if program name isn't capitalised?
+                string processedName = program.Substring(0, 1).ToUpper() + program.Substring(1);
+
+                //TODO: what if program is in a folder?
+                Console.WriteLine($"Checking: {programsPath}");
+                try
+                {
+                    Process.Start(programsPath + processedName);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error");
+                    //TODO: need to differentiate between exceptions?
+                }
             }
         }
 

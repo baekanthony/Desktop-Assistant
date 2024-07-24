@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using static Assist.HandleWindows;
+using System.Windows.Media;
 
 namespace Assist
 {
@@ -58,6 +60,7 @@ namespace Assist
             EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, MonitorEnumProc, IntPtr.Zero);
         }
 
+        //TODO: clean up imports
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, EnumDisplayMonitorsProc lpfnEnum, IntPtr dwData);
@@ -88,24 +91,27 @@ namespace Assist
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
-        [DllImport("dxva2.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool GetMonitorBrightness(IntPtr hMonitor, out int pdwMinimumBrightness, out int pdwCurrentBrightness, out int pdwMaximumBrightness);
+        [DllImport("gdi32.dll")]
+        private static extern bool GetDeviceGammaRamp(IntPtr hdc, ref RAMP lpRamp);
 
-        [DllImport("dxva2.dll", SetLastError = true)]
+        [DllImport("gdi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool GetPhysicalMonitorsFromHMONITOR(IntPtr hMonitor, uint dwPhysicalMonitorArraySize, [Out] PHYSICAL_MONITOR[] pPhysicalMonitorArray);
+        public static extern bool SetDeviceGammaRamp(IntPtr hdc, ref RAMP lpRamp);
 
-        public struct PHYSICAL_MONITOR
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetDC(IntPtr hWnd);
+
+        public struct RAMP
         {
-            public IntPtr hPhysicalMonitor;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-            public string szPhysicalMonitorDescription;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 256)]
+            public ushort[] Red;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 256)]
+            public ushort[] Green;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 256)]
+            public ushort[] Blue;
         }
 
-        [DllImport("dxva2.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool GetNumberOfPhysicalMonitorsFromHMONITOR(IntPtr hMonitor, out uint pdwNumberOfPhysicalMonitors);
+        //Convert back and forth from RGB & HSV to alter brightness?
 
         private bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData)
         {
@@ -114,26 +120,21 @@ namespace Assist
             GetMonitorInfoA(hMonitor, out monitorInfo);
             monitors.Add(monitorInfo.rcWork);
 
-            uint numOfMonitors;
-            GetNumberOfPhysicalMonitorsFromHMONITOR(hMonitor, out numOfMonitors);
-            Console.WriteLine($"Number of monitors: {numOfMonitors}");
-
-            PHYSICAL_MONITOR[] physicalMonitors = new PHYSICAL_MONITOR[numOfMonitors];
-
-            GetPhysicalMonitorsFromHMONITOR(hMonitor, numOfMonitors, physicalMonitors);
-
-            int min, curr, max;
-
-
-            foreach (var monitor in physicalMonitors)
+            Console.WriteLine("Getting DC");
+            //Can just use hdcMonitor?
+            IntPtr hdc = GetDC(IntPtr.Zero);
+            if (hdc != IntPtr.Zero)
             {
-                Console.WriteLine($"Monitor: {monitor.szPhysicalMonitorDescription}, Handle: {monitor.hPhysicalMonitor}");
-                GetMonitorBrightness(monitor.hPhysicalMonitor, out min, out curr, out max);
-                Console.WriteLine("Brightness:");
-                Console.WriteLine(min + " " + curr + " " + max);
+                Console.WriteLine("Got DC");
             }
+            RAMP gammaRamp = new RAMP();
+            GetDeviceGammaRamp(hdcMonitor, ref gammaRamp);
 
-
+            for (int i = 0; i < 256; i++)
+            {
+                //Console.WriteLine($"Red[{i}]: {gammaRamp.Red[i]}, Green[{i}]: {gammaRamp.Green[i]}, Blue[{i}]: {gammaRamp.Blue[i]}");
+            }
+            //Console.WriteLine($"R: {gammaRamp.Red}, G: {gammaRamp.Green}, B: {gammaRamp.Blue}");
             return true;
         }
 

@@ -91,6 +91,28 @@ namespace Assist
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
+        [DllImport("gdi32.dll")]
+        private static extern bool GetDeviceGammaRamp(IntPtr hdc, ref RAMP lpRamp);
+
+        [DllImport("gdi32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetDeviceGammaRamp(IntPtr hdc, ref RAMP lpRamp);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetDC(IntPtr hWnd);
+
+        public struct RAMP
+        {
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 256)]
+            public ushort[] Red;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 256)]
+            public ushort[] Green;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 256)]
+            public ushort[] Blue;
+        }
+
+        //Convert back and forth from RGB & HSV to alter brightness?
+
         private bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData)
         {
             LPMONITORINFO monitorInfo;
@@ -98,6 +120,21 @@ namespace Assist
             GetMonitorInfoA(hMonitor, out monitorInfo);
             monitors.Add(monitorInfo.rcWork);
 
+            Console.WriteLine("Getting DC");
+            //Can just use hdcMonitor?
+            IntPtr hdc = GetDC(IntPtr.Zero);
+            if (hdc != IntPtr.Zero)
+            {
+                Console.WriteLine("Got DC");
+            }
+            RAMP gammaRamp = new RAMP();
+            GetDeviceGammaRamp(hdcMonitor, ref gammaRamp);
+
+            for (int i = 0; i < 256; i++)
+            {
+                //Console.WriteLine($"Red[{i}]: {gammaRamp.Red[i]}, Green[{i}]: {gammaRamp.Green[i]}, Blue[{i}]: {gammaRamp.Blue[i]}");
+            }
+            //Console.WriteLine($"R: {gammaRamp.Red}, G: {gammaRamp.Green}, B: {gammaRamp.Blue}");
             return true;
         }
 

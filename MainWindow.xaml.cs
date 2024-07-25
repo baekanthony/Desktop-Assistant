@@ -136,6 +136,9 @@ namespace Assist
                     SwapMonitors(entities);
                     Console.WriteLine("Swap");
                     break;
+                case "Dim":
+                    DimMonitor(entities); 
+                    break;
                 default:
                     Console.WriteLine("Invalid");
                     break;
@@ -178,6 +181,16 @@ namespace Assist
                     Console.WriteLine("Error");
                     //TODO: need to differentiate between exceptions?
                 }
+            }
+        }
+
+        private void DimMonitor(dynamic entities)
+        {
+            if (entities != null && entities.Length == 1)
+            {
+                int monitorNum = Int32.Parse(entities[0].text);
+                HandleWindows windowsHandler = new HandleWindows();
+                windowsHandler.DimMonitor(monitorNum);
             }
         }
 

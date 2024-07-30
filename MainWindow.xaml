@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Assist"
         mc:Ignorable="d"
-        Title="MainWindow" Height="100" Width="600">
+        Title="MainWindow" Height="200" Width="600">
     <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="20"/>
@@ -16,5 +16,6 @@
             <TextBlock x:Name="prevInput"></TextBlock>
             <TextBox x:Name="txtInput" KeyDown="UserInputTxt"/>
         </StackPanel>
+        <Button Width="auto" x:Name="speakButton" Click="SpeechTest" Margin="0,57,0,-43" Grid.Row="1">Speech Test</Button>
     </Grid>
 </Window>

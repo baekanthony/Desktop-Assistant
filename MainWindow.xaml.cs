@@ -24,6 +24,7 @@ using Azure.AI.Language.Conversations;
 using Azure;
 using System.Runtime.InteropServices;
 using static Assist.MainWindow;
+using System.Speech.Recognition;
 
 namespace Assist
 {
@@ -201,5 +202,23 @@ namespace Assist
             settings.Show();
         }
 
+        private void SpeechTest(object sender, RoutedEventArgs e)
+        {
+            //Might want to look for a different method. This one seems pretty inaccurate
+            Console.WriteLine("Running speech test");
+            SpeechRecognitionEngine recognizer = new SpeechRecognitionEngine();
+            recognizer.LoadGrammar(new DictationGrammar());
+            recognizer.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(recognizer_SpeechRecognized);
+            recognizer.SetInputToDefaultAudioDevice();
+
+            //continuous if set this way
+            recognizer.RecognizeAsync(RecognizeMode.Multiple);
+        }
+
+        private void recognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        {
+            Console.WriteLine(e.Result.Text);
+            prevInput.Text += e.Result.Text + "\n";
+        }
     }
 }

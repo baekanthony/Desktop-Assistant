@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using static Assist.HandleWindows;
-using System.Windows.Media;
+using System.Text;
 
 namespace Assist
 {
@@ -37,12 +37,14 @@ namespace Assist
         }
         public struct WINDOW
         {
+            public string title;
             public RECT rect;
             public IntPtr hWnd;
             public bool isMaximized;
 
-            public WINDOW(RECT rect, IntPtr hWnd, bool isMaximized)
+            public WINDOW(string title, RECT rect, IntPtr hWnd, bool isMaximized)
             {
+                this.title = title;
                 this.rect = rect;
                 this.hWnd = hWnd;
                 this.isMaximized = isMaximized;
@@ -78,6 +80,9 @@ namespace Assist
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
         public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -152,7 +157,9 @@ namespace Assist
 
                 if (((info.dwExStyle & WS_EX_NOREDIRECTIONBITMAP) == 0) && ((info.dwExStyle & WS_EX_TOOLWINDOW) == 0))
                 {
-                    WINDOW window = new WINDOW(info.rcClient, hWnd, (info.dwStyle & WS_MAXIMIZE) > 0);
+                    StringBuilder windowTitle = new StringBuilder(256);
+                    GetWindowText(hWnd, windowTitle, windowTitle.Capacity);
+                    WINDOW window = new WINDOW(windowTitle.ToString(), info.rcClient, hWnd, (info.dwStyle & WS_MAXIMIZE) > 0);
                     windows.Add(window);
                 }
             }
@@ -247,6 +254,24 @@ namespace Assist
         public void DimMonitor(int monitorNum)
         {
 
+        }
+
+        public void MoveWindow(String windowName, int monitorNum)
+        {
+            foreach (WINDOW window in windows)
+            {
+                if (window.title == windowName)
+                {
+                    foreach (RECT monitor in monitors)
+                    {
+                        if (IsWindowOnMonitor(window.rect, monitor))
+                        {
+                            SwapWindow(window, monitor, monitors[monitorNum]);
+                            break;
+                        }
+                    }
+                }
+            }
         }
     }
 }

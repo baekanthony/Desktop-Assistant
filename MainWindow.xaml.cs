@@ -1,28 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Speech.Synthesis;
-using System.Text.RegularExpressions;
-using System.IO;
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
-
 using Azure.Core;
 using Azure.Core.Serialization;
 using Azure.AI.Language.Conversations;
 using Azure;
-using System.Runtime.InteropServices;
 using static Assist.MainWindow;
 using System.Speech.Recognition;
 
@@ -137,6 +122,9 @@ namespace Assist
                     SwapMonitors(entities);
                     Console.WriteLine("Swap");
                     break;
+                case "Move":
+                    MoveWindow(entities);
+                    break;
                 case "Dim":
                     DimMonitor(entities); 
                     break;
@@ -144,20 +132,6 @@ namespace Assist
                     Console.WriteLine("Invalid");
                     break;
             }
-        }
-
-        private void SwapMonitors(dynamic entities = null)
-        {
-            int monitor1 = 1;
-            int monitor2 = 2;
-
-            if (entities != null && entities.Length == 2)
-            {
-                monitor1 = Int32.Parse(entities[0].text);
-                monitor2 = Int32.Parse(entities[1].text);
-            }
-            HandleWindows windowsHandler = new HandleWindows();
-            windowsHandler.SwapMonitors(monitor1, monitor2);
         }
 
         private void OpenProgram(dynamic entities)
@@ -182,6 +156,30 @@ namespace Assist
                     Console.WriteLine("Error");
                     //TODO: need to differentiate between exceptions?
                 }
+            }
+        }
+        private void SwapMonitors(dynamic entities = null)
+        {
+            int monitor1 = 1;
+            int monitor2 = 2;
+
+            if (entities != null && entities.Length == 2)
+            {
+                monitor1 = Int32.Parse(entities[0].text);
+                monitor2 = Int32.Parse(entities[1].text);
+            }
+            HandleWindows windowsHandler = new HandleWindows();
+            windowsHandler.SwapMonitors(monitor1, monitor2);
+        }
+
+        private void MoveWindow(dynamic entities)
+        {
+            //TODO: provide more robust feedback in the cases of command failures, also applies to other commands
+            if (entities == null || entities.Length == 2)
+            {
+                HandleWindows windowsHandler = new HandleWindows();
+                //TODO: better to differentiate entity types and validate
+                windowsHandler.MoveWindow(entities[0].text, Int32.Parse(entities[1].text));
             }
         }
 

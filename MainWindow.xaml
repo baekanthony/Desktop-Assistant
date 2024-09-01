@@ -17,5 +17,6 @@
             <TextBox x:Name="txtInput" KeyDown="UserInputTxt"/>
         </StackPanel>
         <Button Width="auto" x:Name="speakButton" Click="SpeechTest" Margin="0,57,0,-43" Grid.Row="1">Speech Test</Button>
+        <Button Width="auto" x:Name="showButton" Click="showAssistant" Margin="0,82,0,-68" Grid.Row="2">Show</Button>
     </Grid>
 </Window>

@@ -217,6 +217,18 @@ namespace Assist
         {
             Console.WriteLine(e.Result.Text);
             prevInput.Text += e.Result.Text + "\n";
+            //Process command
+        }
+
+        private void showAssistant(object sender, RoutedEventArgs e)
+        {
+            DoubleAgent.AxControl.AxControl newAgent = new DoubleAgent.AxControl.AxControl();
+
+            newAgent.CreateControl();
+
+            //newAgent.Characters.Load("Bonzi", "PATH");
+            newAgent.Characters["Bonzi"].Show();
+            newAgent.Characters["Bonzi"].Speak("Hello there my friend");
         }
     }
 }

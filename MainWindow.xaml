@@ -5,18 +5,34 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Assist"
         mc:Ignorable="d"
-        Title="MainWindow" Height="200" Width="600">
-    <Grid Margin="5">
+        Title="MainWindow" Height="200" Width="600"
+        Background="Black"
+        Activated="Window_Activated">
+
+    <Window.Resources>
+        <Style x:Key="TextBoxStyle" TargetType="TextBox">
+            <Setter Property="Foreground" Value="Green"/>
+            <Setter Property="Background" Value="Black"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+    </Window.Resources>
+    
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="20"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
-        <Button Width="auto" x:Name="settingsButton" Click="OpenSettings">Temp Settings</Button>
-        <StackPanel Grid.Row="1">
-            <TextBlock x:Name="prevInput"></TextBlock>
-            <TextBox x:Name="txtInput" KeyDown="UserInputTxt"/>
-        </StackPanel>
-        <Button Width="auto" x:Name="speakButton" Click="SpeechTest" Margin="0,57,0,-43" Grid.Row="1">Speech Test</Button>
-        <Button Width="auto" x:Name="showButton" Click="showAssistant" Margin="0,82,0,-68" Grid.Row="2">Show</Button>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="39*"/>
+        </Grid.ColumnDefinitions>
+        <Button Grid.Row="0" Grid.ColumnSpan="2" Width="auto" x:Name="settingsButton" Click="OpenSettings">Settings</Button>
+        <TextBox Grid.Row="1" Grid.ColumnSpan="2" x:Name="prevInput" Margin="5, 0, 0, 0" Style="{StaticResource TextBoxStyle}" IsReadOnly="True" MaxHeight="100" VerticalScrollBarVisibility="Auto"/>
+        <TextBlock Grid.Row="2" Grid.Column="0" Foreground="Green" Margin="5, 0, 0, 0"> > </TextBlock>
+        <TextBox Grid.Row="2" Grid.Column="1" x:Name="txtInput" Style="{StaticResource TextBoxStyle}" KeyDown="UserInput"></TextBox>
+
     </Grid>
 </Window>

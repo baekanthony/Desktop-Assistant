@@ -10,6 +10,7 @@ using Azure.AI.Language.Conversations;
 using Azure;
 using static Assist.MainWindow;
 using System.Speech.Recognition;
+using System.Windows.Media;
 
 namespace Assist
 {
@@ -26,6 +27,11 @@ namespace Assist
                 .AddJsonFile("appsettings.json");
             var configuration = builder.Build();
 
+            //Option to change font?
+            var fontStream = Application.GetResourceStream(new Uri("pack://application:,,,/Fonts/FiraCode-Light.ttf")).Stream;
+            var firaCode = new FontFamily(new Uri("pack://application:,,,/Fonts/"), "./#Fira Code Light");
+            this.FontFamily = firaCode;
+
             Uri endpoint = new Uri(configuration["ApiSettings:Endpoint"]);
             AzureKeyCredential credential = new AzureKeyCredential($"{configuration["ApiSettings:Key"]}");
 
@@ -35,7 +41,12 @@ namespace Assist
             synthesizer.SetOutputToDefaultAudioDevice();
         }
 
-        private void UserInputTxt(object sender, KeyEventArgs e)
+        private void Window_Activated(object sender, EventArgs e)
+        {
+            txtInput.Focus();
+        }
+
+        private void UserInput(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
@@ -45,7 +56,7 @@ namespace Assist
                 //synthesizer.Speak(txtInput.Text);
 
                 prevInput.Text += txtInput.Text + "\n";
-
+                prevInput.ScrollToEnd();
                 txtInput.Clear();
             }
         }
@@ -78,10 +89,10 @@ namespace Assist
             };
 
             Console.WriteLine(RequestContent.Create(data));
-            Response response = await client.AnalyzeConversationAsync(RequestContent.Create(data));
+            //Response response = await client.AnalyzeConversationAsync(RequestContent.Create(data));
 
-            dynamic conversationalTaskResult = response.Content.ToDynamicFromJson(JsonPropertyNames.CamelCase);
-            dynamic conversationPrediction = conversationalTaskResult.Result.Prediction;
+            //dynamic conversationalTaskResult = response.Content.ToDynamicFromJson(JsonPropertyNames.CamelCase);
+            //dynamic conversationPrediction = conversationalTaskResult.Result.Prediction;
 
             //TODO: try thinking about cases with combined commands (ex. open firefox, then turn on focus mode)
 
@@ -101,8 +112,8 @@ namespace Assist
 
             //TODO: maybe check confidenceScores here before proceeding
 
-            dynamic entities = conversationPrediction.Entities;
-            CommandSelection(conversationPrediction.TopIntent, entities);
+            //dynamic entities = conversationPrediction.Entities;
+            //CommandSelection(conversationPrediction.TopIntent, entities);
         }
 
         private void CommandSelection(string command, dynamic entities = null)
@@ -226,9 +237,13 @@ namespace Assist
 
             newAgent.CreateControl();
 
-            //newAgent.Characters.Load("Bonzi", "PATH");
+            newAgent.Characters.Load("Bonzi", "PATH");
+
+            //Need to get coords of window first
+            newAgent.Characters["Bonzi"].MoveTo(5, 5);
             newAgent.Characters["Bonzi"].Show();
-            newAgent.Characters["Bonzi"].Speak("Hello there my friend");
+            //newAgent.Characters["Bonzi"].Speak("Hello there my friend");
         }
+
     }
 }

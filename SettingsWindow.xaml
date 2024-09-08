@@ -14,6 +14,7 @@
             <Label>Set programs directory</Label>
             <Button Click="SetDirectory">Browse</Button>
             <Button Click="DisplayMonitors">Show Monitors</Button>
+            <Button Width="auto" x:Name="showButton" Grid.Row="2">Show Assistant</Button>
             <Border BorderThickness="3" BorderBrush="Gray" Height="300" Width="500" Margin="0, 20" x:Name="monitorsCanvasBorder">
                 <Canvas x:Name="monitorsCanvas">
                 </Canvas>

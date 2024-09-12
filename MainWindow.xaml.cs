@@ -39,6 +39,8 @@ namespace Assist
             InitializeComponent();
             synthesizer = new SpeechSynthesizer();
             synthesizer.SetOutputToDefaultAudioDevice();
+
+            Agent agent = new Agent();
         }
 
         private void Window_Activated(object sender, EventArgs e)
@@ -231,19 +233,7 @@ namespace Assist
             //Process command
         }
 
-        private void showAssistant(object sender, RoutedEventArgs e)
-        {
-            DoubleAgent.AxControl.AxControl newAgent = new DoubleAgent.AxControl.AxControl();
 
-            newAgent.CreateControl();
-
-            newAgent.Characters.Load("Bonzi", "PATH");
-
-            //Need to get coords of window first
-            newAgent.Characters["Bonzi"].MoveTo(5, 5);
-            newAgent.Characters["Bonzi"].Show();
-            //newAgent.Characters["Bonzi"].Speak("Hello there my friend");
-        }
 
     }
 }

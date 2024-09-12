@@ -139,5 +139,10 @@ namespace Assist
             DisplayMonitors(sender, e);
             resetBtn.IsEnabled = false;
         }
+
+        private void showAssistant(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
